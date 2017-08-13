@@ -7,17 +7,41 @@ import tweepy
 import configparser
 import sys
 
+#simple function to make sure a Y or N is always entered when prompting for Y/N
+def yes_or_no(msg):
+    answer = input(msg + " Y or N: ")
+   
+    while True:
+        if answer == 'N':
+            break
+        elif answer == 'Y': 
+            break
+        else:
+            answer = input("Please enter Y or N: ")
+    
+    return answer
+
 #get twitter connection keys from a file
 def getkeys():
-    path_input = input("Please specify the path to your key file (see readme file for key file format): ")
     config = configparser.ConfigParser()
-    config.read(path_input)
     
-    key = config.get("SectionOne","CONSUMER_KEY")
-    secret = config.get("SectionOne","CONSUMER_SECRET")
-    token = config.get("SectionOne","ACCESS_TOKEN")
-    token_secret = config.get("SectionOne","ACCESS_TOKEN_SECRET")
+    while True:
+        path_input = input("Please specify the path to your key file (see readme file for key file format): ")
+        try:
+            config.read(path_input)
     
+            key = config.get("SectionOne","CONSUMER_KEY")
+            secret = config.get("SectionOne","CONSUMER_SECRET")
+            token = config.get("SectionOne","ACCESS_TOKEN")
+            token_secret = config.get("SectionOne","ACCESS_TOKEN_SECRET")
+            break
+            
+        except:
+            try_again = yes_or_no("Could not find a valid file there.  Would you like to try again?")
+            if try_again == 'N':
+                print("Okay - Adios!")
+                sys.exit()
+            
     return key, secret, token, token_secret
 
 #authorize the twitter handle using the keys from the getkeys function
@@ -38,7 +62,7 @@ def select_user(api):
             user = api_handle.get_user(user_in)
             break
         except:
-            again = input("Could not find that user.  Would you like to try again?  Y or N: ")
+            again = yes_or_no("Could not find that user.  Would you like to try again?")
             if again == 'N':
                 sys.exit() 
     
@@ -65,23 +89,9 @@ def choose_list(user_lists):
             if (i == 1):
                 print("Please enter a valid list number!")
             else:
-                print("What are you some kind of MO-RON, number only: ") 
+                print("What are you some kind of MO-RON, a valid number only: ") 
     return chosen
-
-#simple function to make sure a Y or N is always entered when prompting for Y/N
-def yes_or_no(msg):
-    answer = input(msg, " Y or N: ")
-    
-    while True:
-        if answer == 'N':
-            break
-        elif answer == 'Y': 
-            break
-        else:
-            answer = input("Please enter Y or N: ")
-    
-    return answer
-              
+             
 api_handle = authorize()
 
 while True:
@@ -100,7 +110,7 @@ print_lists(lists)
 
 chosen_list = choose_list(lists)
 
-follow = yes_or_no("Would you like to follow everyone in ", chosen_list.name, "?")
+follow = yes_or_no("There are " + str(chosen_list.member_count) + " members in " + chosen_list.name + " Would you like to follow them all?")
 if follow == 'N':
     print("Okay - you won't follow them!")
     sys.exit()
